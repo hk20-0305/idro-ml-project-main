@@ -11,5 +11,7 @@ import com.india.idro.model.NGO;
 public interface NGORepository extends MongoRepository<NGO, String> {
     Optional<NGO> findByNgoId(String ngoId);
 
-    java.util.List<NGO> findByState(String state);
+    java.util.List<NGO> findByStateIgnoreCase(String state);
+
+    java.util.List<NGO> findByNgoIdIn(java.util.List<String> ngoIds);
 }

@@ -30,6 +30,9 @@ public class GovernmentAgencyService implements CommandLineRunner {
     @Autowired
     private GovernmentResourceSubmissionRepository submissionRepository;
 
+    @Autowired
+    private com.india.idro.repository.AlertRepository alertRepository;
+
     @Override
     public void run(String... args) throws Exception {
         initializeDemoAgencies();
@@ -191,8 +194,45 @@ public class GovernmentAgencyService implements CommandLineRunner {
         return agencyRepository.save(agency);
     }
 
-    public List<GovernmentAgency> getAllAgencies() {
-        List<GovernmentAgency> agencies = agencyRepository.findAll();
+    private static final List<String> VALID_INDIAN_STATES = java.util.Arrays.asList(
+            "Maharashtra", "Rajasthan", "Assam", "Gujarat", "Uttar Pradesh");
+
+    public List<GovernmentAgency> getAllAgencies(String disasterId) {
+        if (disasterId == null || disasterId.trim().isEmpty()) {
+            System.out.println("⚠️ No disaster context provided. Returning empty list for agencies.");
+            return new java.util.ArrayList<>();
+        }
+
+        // 1. Fetch disaster context
+        com.india.idro.model.Alert alert = alertRepository.findById(disasterId).orElse(null);
+        if (alert == null || alert.getLocation() == null || alert.getLocation().trim().isEmpty()) {
+            System.out.println("⚠️ Disaster or location context missing. Returning empty list for agencies.");
+            return new java.util.ArrayList<>();
+        }
+
+        String location = alert.getLocation();
+        System.out.println("🏛️ Analyzing Agency Location: [" + location + "]");
+
+        // 2. Identify State by Keyword Matching
+        String detectedState = null;
+        for (String state : VALID_INDIAN_STATES) {
+            if (location.toLowerCase().contains(state.toLowerCase())) {
+                detectedState = state;
+                break;
+            }
+        }
+
+        if (detectedState == null) {
+            System.out.println("⚠️ No matching Indian state detected for agencies. Scoping empty pool.");
+            return new java.util.ArrayList<>();
+        }
+
+        System.out.println("📍 Detected Agency State: [" + detectedState + "]");
+
+        // 3. Fetch agencies strictly by matching state (Operating Region)
+        List<GovernmentAgency> agencies = agencyRepository.findByOperatingRegionIgnoreCase(detectedState);
+        System.out.println("🔍 Found " + agencies.size() + " Agencies matching: " + detectedState);
+
         // Remove passwords for security
         agencies.forEach(agency -> agency.setPassword(null));
         return agencies;

@@ -107,9 +107,11 @@ public class GovernmentAgencyController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<GovernmentAgency>> getAllAgencies() {
-        System.out.println("📋 Fetching all Government Agencies for mission control");
-        List<GovernmentAgency> agencies = agencyService.getAllAgencies();
+    public ResponseEntity<List<GovernmentAgency>> getAllAgencies(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String disasterId) {
+        System.out.println(
+                "📋 Fetching Government Agencies for context: " + (disasterId != null ? disasterId : "GLOBAL"));
+        List<GovernmentAgency> agencies = agencyService.getAllAgencies(disasterId);
         return ResponseEntity.ok(agencies);
     }
 

@@ -11,4 +11,6 @@ import com.india.idro.model.GovernmentAgency;
 public interface GovernmentAgencyRepository extends MongoRepository<GovernmentAgency, String> {
 
     Optional<GovernmentAgency> findByAgencyId(String agencyId);
+
+    java.util.List<GovernmentAgency> findByOperatingRegionIgnoreCase(String region);
 }

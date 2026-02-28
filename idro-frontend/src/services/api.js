@@ -42,8 +42,8 @@ export const idroApi = {
   getImpactAnalysis: (missionId) => api.get(`/impact-analysis/${missionId}`),
 
   // -------- PROVIDERS (NGO & GOV) ----------
-  getAllNGOs: () => api.get("/ngo/all"),
-  getAllAgencies: () => api.get("/government/all"),
+  getAllNGOs: (disasterId) => api.get(`/ngo/all${disasterId ? `?disasterId=${disasterId}` : ""}`),
+  getAllAgencies: (disasterId) => api.get(`/government/all${disasterId ? `?disasterId=${disasterId}` : ""}`),
 };
 
 export default api;

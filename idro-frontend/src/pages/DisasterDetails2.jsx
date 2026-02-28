@@ -164,7 +164,7 @@ export default function DisasterDetails2() {
                 let debugInfo = { ngoCount: 0, agencyCount: 0, ngoError: null, agencyError: null };
 
                 try {
-                    const ngosRes = await idroApi.getAllNGOs();
+                    const ngosRes = await idroApi.getAllNGOs(id);
                     if (Array.isArray(ngosRes.data)) {
                         debugInfo.ngoCount = ngosRes.data.length;
                         ngoList = ngosRes.data.map(ngo => ({
@@ -186,7 +186,7 @@ export default function DisasterDetails2() {
                 }
 
                 try {
-                    const agenciesRes = await idroApi.getAllAgencies();
+                    const agenciesRes = await idroApi.getAllAgencies(id);
                     if (Array.isArray(agenciesRes.data)) {
                         debugInfo.agencyCount = agenciesRes.data.length;
                         agencyList = agenciesRes.data.map(agency => {

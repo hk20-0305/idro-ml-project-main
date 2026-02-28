@@ -104,24 +104,13 @@ public class NGOController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<NGO>> getAllNGOs() {
-        System.out.println("📋 Fetching all NGOs for government visibility");
+    public ResponseEntity<List<NGO>> getAllNGOs(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String disasterId) {
+        System.out.println("📋 Fetching NGOs for context: " + (disasterId != null ? disasterId : "GLOBAL"));
 
-        List<NGO> ngos = ngoService.getAllNGOs();
+        List<NGO> ngos = ngoService.getAllNGOs(disasterId);
 
         // Remove passwords from all NGOs
-        ngos.forEach(ngo -> ngo.setPassword(null));
-
-        return ResponseEntity.ok(ngos);
-    }
-
-    @GetMapping("/provider-pool/{disasterId}")
-    public ResponseEntity<List<NGO>> getProviderPool(@PathVariable String disasterId) {
-        System.out.println("📋 Fetching provider pool for disaster: " + disasterId);
-
-        List<NGO> ngos = ngoService.getProviderPool(disasterId);
-
-        // Remove passwords
         ngos.forEach(ngo -> ngo.setPassword(null));
 
         return ResponseEntity.ok(ngos);

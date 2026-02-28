@@ -32,7 +32,7 @@ public class Alert {
     private String missing;
     private LocalDateTime createdAt;
 
-    // ✅ ADDED STATE FIELD
+    // ✅ ADDED STATE FIELD FOR REGIONAL FILTERING
     private String state;
     private String responderName;
     private String urgency;

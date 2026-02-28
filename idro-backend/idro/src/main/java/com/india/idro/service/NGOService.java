@@ -333,27 +333,56 @@ public class NGOService implements CommandLineRunner {
                 return ngoRepository.save(ngo);
         }
 
-        public List<NGO> getAllNGOs() {
-                return ngoRepository.findAll();
-        }
+        private static final List<String> VALID_INDIAN_STATES = java.util.Arrays.asList(
+                        "Maharashtra", "Rajasthan", "Assam", "Gujarat", "Uttar Pradesh");
 
-        public List<NGO> getProviderPool(String disasterId) {
-                System.out.println("🔍 Fetching Provider Pool for Disaster ID: " + disasterId);
+        public List<NGO> getAllNGOs(String disasterId) {
+                if (disasterId == null || disasterId.trim().isEmpty()) {
+                        System.out.println("⚠️ No disaster context provided. Returning empty list for isolation.");
+                        return new java.util.ArrayList<>();
+                }
 
-                // 1. Get disaster by ID
-                Optional<com.india.idro.model.Alert> alertOpt = alertRepository.findById(disasterId);
+                // 1. Fetch disaster context
+                com.india.idro.model.Alert alert = alertRepository.findById(disasterId).orElse(null);
+                if (alert == null || alert.getLocation() == null || alert.getLocation().trim().isEmpty()) {
+                        System.out.println("⚠️ Disaster or location context missing. Returning empty list.");
+                        return new java.util.ArrayList<>();
+                }
 
-                if (alertOpt.isPresent()) {
-                        String disasterState = alertOpt.get().getState();
-                        System.out.println("📍 Disaster State: " + disasterState);
+                String location = alert.getLocation();
+                System.out.println("🔍 Analyzing Location for State: [" + location + "]");
 
-                        if (disasterState != null && !disasterState.isEmpty()) {
-                                // 2. Fetch only NGOs whose state matches
-                                return ngoRepository.findByState(disasterState);
+                // 2. Identify State by Keyword Matching
+                String detectedState = null;
+                for (String state : VALID_INDIAN_STATES) {
+                        if (location.toLowerCase().contains(state.toLowerCase())) {
+                                detectedState = state;
+                                break;
                         }
                 }
 
-                System.out.println("⚠️ No matching state found for disaster, returning empty pool.");
-                return new java.util.ArrayList<>();
+                if (detectedState == null) {
+                        System.out.println(
+                                        "⚠️ No matching Indian state detected in location. Scoping empty pool for safety.");
+                        return new java.util.ArrayList<>();
+                }
+
+                System.out.println("📍 Detected State: [" + detectedState + "]");
+
+                // 3. Fetch NGOs strictly by matching state
+                List<NGO> allNgosInState = ngoRepository.findByStateIgnoreCase(detectedState);
+                System.out.println("🏢 Found " + allNgosInState.size() + " NGOs matching: " + detectedState);
+
+                // 4. Extract ngoIds (as requested for tiered isolation)
+                List<String> filteredNgoIds = allNgosInState.stream()
+                                .map(NGO::getNgoId)
+                                .collect(java.util.stream.Collectors.toList());
+
+                if (filteredNgoIds.isEmpty()) {
+                        return new java.util.ArrayList<>();
+                }
+
+                // 5. Final Isolation Fetch
+                return ngoRepository.findByNgoIdIn(filteredNgoIds);
         }
 }
